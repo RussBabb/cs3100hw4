@@ -1,3 +1,5 @@
+//Russell Babb
+//A01537969
 #ifndef SHELLFUNCTIONS_HPP
 #define SHELLFUNCTIONS_HPP
 
