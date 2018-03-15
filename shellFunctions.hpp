@@ -10,10 +10,11 @@
 using namespace std;
 
 
-void execute( vector< string > );
+double execute( vector< string > );
 void printHistory(vector< vector< string > >);
-void historyCmd(string, vector< vector< string > >);
-void commandParse(vector< string >, vector< vector< string > >);
+double historyCmd(string, vector< vector< string > >, double);
+double commandParse(vector< string >, vector< vector< string > >,double);
+void printPtime(double);
 
 
 

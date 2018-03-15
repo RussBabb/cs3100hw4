@@ -8,6 +8,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <chrono>
+#include <ctime>
 
 //my header files
 #include "shellFunctions.hpp"
@@ -48,8 +50,7 @@ void cleanUp(executeData toClean){
     return;
 }
 
-void execute(vector< string > command){
-
+double execute(vector< string > command){
     pid_t pid;
     int status;
      
@@ -65,11 +66,15 @@ void execute(vector< string > command){
             exit(1);
         }
     }
+
+    auto start = chrono::system_clock::now();
     wait(NULL);
+    auto end = chrono::system_clock::now();
+    chrono::duration<double> elapsed_seconds = end-start;
 
     cleanUp(sender);
     
-    return;
+    return elapsed_seconds.count();
 }
 
 void printHistory(vector< vector< string > > history){
@@ -84,30 +89,44 @@ void printHistory(vector< vector< string > > history){
 }
 
 
-void historyCmd(string number,vector< vector< string > > history){
+double historyCmd(string number,vector< vector< string > > history, double ptime){
 
     int num = stoi(number);
     
-    if(num < 1||num > history.size()){
+    if(num < 1||num > history.size() - 1){
         printf("*** ERROR: entered an invalid number\n");
     }else{
-        commandParse(history[num-1],history);
-    }
-
-    return;
-}
-
-void commandParse(vector< string > command, vector< vector< string > > history){
-
-        if(command[0] == "history"){ //history *complete*
-            printHistory(history);
-        }else if(command[0] == "^"){ //^ <number> 
-            historyCmd(command[1],history);
-        }else if(command[0] == "ptime"){ //ptime *todo*
-
-        }else{ //execute shell commands 
-            execute(command);
+        if(history[num-1].size() > 1){
+            if(number != history[num-1][1]){
+                ptime = commandParse(history[num-1],history, ptime);
+            }else{
+                printf("*** ERROR: running command will cause segmentation fault\n");
+            }
+        }else{
+            ptime = commandParse(history[num-1],history, ptime);
         }
 
-    return;
+    }
+
+    return ptime;
+}
+
+double commandParse(vector< string > command, vector< vector< string > > history, double ptime){
+
+    if(command[0] == "history"){ //history *complete*
+        printHistory(history);
+    }else if(command[0] == "^"){ //^ <number> 
+        ptime = historyCmd(command[1],history,ptime);
+    }else if(command[0] == "ptime"){ //ptime *todo*
+        printPtime(ptime);
+    }else{ //execute shell commands 
+        ptime = execute(command);
+    }
+
+    return ptime;
+}
+
+void printPtime(double ptime){
+
+    printf("Time spent executing the last child process: %.4f seconds\n",ptime);
 }

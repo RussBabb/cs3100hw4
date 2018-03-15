@@ -8,7 +8,6 @@
 #include <sstream>
 #include <signal.h>
 
-
 //my header files
 #include "shellFunctions.hpp"
 
@@ -26,51 +25,47 @@ using namespace std;
 
 
 int main(int argc, char** argv){
-
-	vector< string > command;
-	vector< vector< string > > history;
     
+    //setup CTRL-C capablility
     signal(SIGINT, sigint);
 
+    //setup variables
+	vector< string > command;
+	vector< vector< string > > history;
     stringstream ss;
     string input;
     string token;
+    double ptime = 0;
 
-	
-	bool on = true;
-
-	while(on){
-		printf("[cmd]: ");
-        
+	while(true){
+        //clear variables
         input.clear();
         ss.clear();
         token.clear();
         command.clear();
 
+        //print display
+		printf("[cmd]: ");
 
+        //get input
         getline(cin,input);
 		ss << input;
        
+        //parse input
         while(ss >> token){
             command.push_back(token);
         }
 
+        //record history
         history.push_back(command);
 
-
-        //printf("history length %i \n",history.size());
-
-
-
-
-
         //// built in commands
-        //exit *complete*
         if(command[0] == "exit"){
             break;
         }else{
-            commandParse(command,history); 
+            ptime = commandParse(command,history,ptime); 
         }
+
     }
 
 
