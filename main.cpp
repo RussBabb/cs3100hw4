@@ -59,8 +59,8 @@ int main(int argc, char** argv){
         //record history
         history.push_back(command);
 
-        //// built in commands
-        if(command[0] == "exit"){
+        if(command.size() < 1){
+        }else if(command[0] == "exit"){
             break;
         }else{
             ptime = commandParse(command,history,ptime); 
