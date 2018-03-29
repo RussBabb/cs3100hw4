@@ -161,7 +161,7 @@ double pipeCommand(vector< string > command1, vector< string > command2,  double
     int kids = 2;
     while(kids > 0){
         pid_t kiddo = waitpid(-1, &wstatus, 0);
-        printf("Child Proc %i exited with status %i\n",kiddo,wstatus);
+        //printf("Child Proc %i exited with status %i\n",kiddo,wstatus);
         kids--;
     }
 
