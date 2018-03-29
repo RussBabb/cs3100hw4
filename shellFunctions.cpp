@@ -12,12 +12,15 @@
 #include <sys/wait.h>
 #include <chrono>
 #include <ctime>
+#include <error.h>
 
 //my header files
 #include "shellFunctions.hpp"
 
 using namespace std;
 
+const int WRITE = 1;
+const int READ = 0;
 
 struct executeData{
     char** results;
@@ -113,6 +116,64 @@ double historyCmd(string number,vector< vector< string > > history, double ptime
     return ptime;
 }
 
+double pipeCommand(vector< string > command1, vector< string > command2,  double ptime){
+    /*
+    for(int i = 0; i < command1.size(); i++){
+        printf("%s\n",command1[i].c_str());
+    }
+
+    for(int i = 0; i < command2.size(); i++){
+        printf("%s\n",command2[i].c_str());
+    }
+    */
+
+    int p[2];
+    pipe(p);
+
+    executeData sender1 = returnCommand(command1);
+    executeData sender2 = returnCommand(command2);
+    
+
+    if(fork() == 0){
+        close(p[READ]);
+        dup2(p[WRITE], STDOUT_FILENO);
+        if (execvp(sender1.results[0],sender1.results) < 0){ // execute the command
+            error(1, errno, "error in first command");
+        }
+
+    }
+
+    if (fork() == 0){
+
+
+        close(p[WRITE]);
+        dup2(p[READ], STDIN_FILENO);
+        if (execvp(sender2.results[0],sender2.results) < 0){ // execute the command
+            error(1, errno, "error in second command");
+        }
+    }
+
+    close(p[READ]);
+    close(p[WRITE]);
+
+
+    int wstatus;
+    int kids = 2;
+    while(kids > 0){
+        pid_t kiddo = waitpid(-1, &wstatus, 0);
+        printf("Child Proc %i exited with status %i\n",kiddo,wstatus);
+        kids--;
+    }
+
+
+
+
+    cleanUp(sender1);
+    cleanUp(sender2);
+
+    return ptime;
+}
+
 double commandParse(vector< string > command, vector< vector< string > > history, double ptime){
 
     if(command[0] == "history"){ //history *complete*
@@ -121,8 +182,35 @@ double commandParse(vector< string > command, vector< vector< string > > history
         ptime = historyCmd(command[1],history,ptime);
     }else if(command[0] == "ptime"){ //ptime *todo*
         printPtime(ptime);
+    }else if(command[0] == "cd"){
+        const char* test = command[1].c_str();
+        chdir(test);
     }else{ //execute shell commands 
-        ptime = execute(command);
+        bool foundPipe = false;
+        int pipeLocation = 0;
+        for(int i = 0; i < command.size(); i++){
+            if(command[i] == "|"){
+                foundPipe = true;
+                pipeLocation = i;
+            }
+        }
+        if(foundPipe){
+            vector< string > command1;
+            vector< string > command2;
+
+            for(int i = 0; i < pipeLocation; i++){
+                command1.push_back(command[i]);
+            }
+
+            for(int i = pipeLocation + 1; i < command.size(); i++){
+                command2.push_back(command[i]);
+            }
+
+            ptime = pipeCommand(command1,command2,ptime);
+
+        }else{
+            ptime = execute(command);
+        }
     }
 
     return ptime;

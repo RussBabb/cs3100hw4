@@ -45,6 +45,8 @@ chrono
 -
 ctime
 -
+error.h
+-
 shellFunctions.hpp
 /home/ares/Desktop/os/project4/shellFunctions.hpp
 
