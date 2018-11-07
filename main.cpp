@@ -66,6 +66,7 @@ int main(int argc, char** argv){
             ptime = commandParse(command,history,ptime); 
         }
 
+
     }
 
 
